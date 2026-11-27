@@ -42,6 +42,9 @@ multiplicative counterpart of the additivity of the trace `LinearMap.trace_eq_ad
 * `LinearMap.charpoly_eq_mul_of_exact`: the characteristic polynomial of the middle endomorphism
   of a short exact sequence of finite free modules is the product of those of the outer ones.
 
+* `LinearMap.eq_bot_or_eq_top_of_irreducible_charpoly`: over a field, an endomorphism whose
+  characteristic polynomial is irreducible preserves no subspace other than `⊥` and `⊤`.
+
 * `Submodule.charpoly_lsmul_eq_mul_quotient`: for an algebra `A` over a field `k` and an
   `A`-submodule `P` of a finite-dimensional `A`-module `M`, the characteristic polynomial of
   `a : A` on `M` is the product of those on `P` and on `M ⧸ P`.
@@ -165,6 +168,20 @@ theorem charpoly_dvd_of_injective_of_comp_eq_comp (f : V →ₗ[K] V) (g : U →
       (congrArg g (LinearEquiv.ofInjective_symm_apply j x))
   refine ⟨(W.mapQ W g hW).charpoly, ?_⟩
   rw [charpoly_eq_charpoly_restrict_mul_charpoly_mapQ W g hW, ← he, e.charpoly_conj]
+
+/-- **An endomorphism with irreducible characteristic polynomial has no nontrivial invariant
+subspace.** Its characteristic polynomial is the product of those on an invariant subspace and
+on the quotient, which are monic of degrees the two dimensions, so one of them has degree `0`. -/
+theorem eq_bot_or_eq_top_of_irreducible_charpoly (f : V →ₗ[K] V) (hf : Irreducible f.charpoly)
+    {W : Submodule K V} (hW : W ≤ W.comap f) : W = ⊥ ∨ W = ⊤ := by
+  rcases hf.isUnit_or_isUnit (charpoly_eq_charpoly_restrict_mul_charpoly_mapQ W f hW) with h | h
+  · have := (f.restrict hW).charpoly_natDegree
+    rw [(charpoly_monic _).isUnit_iff.mp h, Polynomial.natDegree_one] at this
+    exact .inl (Submodule.finrank_eq_zero.mp this.symm)
+  · have := (W.mapQ W f hW).charpoly_natDegree
+    rw [(charpoly_monic _).isUnit_iff.mp h, Polynomial.natDegree_one, eq_comm,
+      Module.finrank_zero_iff] at this
+    exact .inr (Submodule.Quotient.subsingleton_iff.mp this)
 
 end LinearMap
 
